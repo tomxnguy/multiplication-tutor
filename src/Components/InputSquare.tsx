@@ -21,7 +21,7 @@ export default function InputSquare({ onClick, isFlashing }: InputSquareProps) {
       max="9"
       min="0"
       className={`w-14 h-14 text-center border rounded ${
-        isFlashing ? "bg-amber-200" : ""
+        isFlashing ? "bg-amber-300" : ""
       } text-3xl`}
       placeholder=""
       onClick={onClick}
