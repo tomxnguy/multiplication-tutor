@@ -51,6 +51,11 @@ export default function ProductInput({
           value={digit}
           onChange={(e) => handleInputProduct(e, index)}
           maxLength={1}
+          onFocus={(e) => e.target.setSelectionRange(1, 1)}
+          onMouseUp={(e) => {
+            e.preventDefault();
+            e.currentTarget.setSelectionRange(1, 1);
+          }}
           className={`border-4 text-4xl text-center w-14 h-14 ${
             isCorrect === null
               ? "border-black"
