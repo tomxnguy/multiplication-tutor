@@ -1,18 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import InputSquare from "./InputSquare";
 import ProductInput from "./ProductInput";
 
 export type MultiplicationStepsProps = {
   num1: number;
   num2: number;
+  onAllCorrect: () => void;
 };
 
 export default function MultiplicationSteps({
   num1,
   num2,
+  onAllCorrect,
 }: MultiplicationStepsProps) {
   const [isFlashingCarry, setIsFlashingCarry] = useState<number | null>(null);
   const [checkCorrect, setCheckCorrect] = useState(false);
+  const [onesCorrect, setOnesCorrect] = useState(false);
+  const [tensCorrect, setTensCorrect] = useState(false);
+  const [productCorrect, setProductCorrect] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+
+  useEffect(() => {
+    const allCorrect = onesCorrect && tensCorrect && productCorrect;
+    setIsCorrect(allCorrect);
+
+    if (allCorrect) {
+      onAllCorrect();
+    }
+  }, [onesCorrect, tensCorrect, productCorrect, onAllCorrect]);
 
   function handleInputClick(index: number, row: "carry") {
     if (row === "carry") {
@@ -35,13 +50,26 @@ export default function MultiplicationSteps({
   const productDigits = product.toString().split("");
 
   function handleSubmit() {
-    setCheckCorrect(true);
+    setCheckCorrect(false);
+    setTimeout(() => setCheckCorrect(true), 0);
+  }
+
+  function handleCorrectState(label: string, isCorrect: boolean) {
+    if (label === "ones") setOnesCorrect(isCorrect);
+    if (label === "tens") setTensCorrect(isCorrect);
+    if (label === "product") setProductCorrect(isCorrect);
+
+    const allCorrect = onesCorrect && tensCorrect && productCorrect;
+    setIsCorrect(allCorrect);
+
+    if (isCorrect && onesCorrect && tensCorrect && productCorrect) {
+      onAllCorrect();
+    }
   }
 
   return (
     <div className="flex flex-col items-center">
-      <div className="mt-20 text-8xl font-mono">
-        {/* InputSquares to help the user keep count of the carried numbers */}
+      <div className="mt-10 text-8xl font-mono">
         <div className="flex flex-col items-end">
           <div className="flex space-x-2 mb-2">
             {num1Digits.map((_, index) => (
@@ -67,6 +95,9 @@ export default function MultiplicationSteps({
             label="ones"
             correctAnswer={onesResultsDigits.join("")}
             checkCorrect={checkCorrect}
+            onCheckCorrect={(isCorrect) =>
+              handleCorrectState("ones", isCorrect)
+            }
           />
         </div>
 
@@ -77,6 +108,9 @@ export default function MultiplicationSteps({
             label="tens"
             correctAnswer={tensResultsDigits.join("")}
             checkCorrect={checkCorrect}
+            onCheckCorrect={(isCorrect) =>
+              handleCorrectState("tens", isCorrect)
+            }
           />
         </div>
 
@@ -87,17 +121,26 @@ export default function MultiplicationSteps({
             label="product"
             correctAnswer={productDigits.join("")}
             checkCorrect={checkCorrect}
+            onCheckCorrect={(isCorrect) =>
+              handleCorrectState("product", isCorrect)
+            }
           />
         </div>
 
-        {/* Submit Button */}
+        {/* Submit & Next Button */}
         <div className="flex h-full mb-6 justify-center">
-          <button
-            onClick={handleSubmit}
-            className="mt-4 px-4 py-1 bg-green-300 text-whit text-3xl rounded"
-          >
-            Submit
-          </button>
+          {!isCorrect ? (
+            <button
+              onClick={handleSubmit}
+              className="mt-4 px-4 py-1 bg-green-300 text-white text-3xl rounded"
+            >
+              Submit
+            </button>
+          ) : (
+            <div className="flex flex-col items-center mt-6">
+              <p className="text-green-500 text-3xl font-bold">Correct!</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ export type ProductInputProps = {
   label: string;
   correctAnswer: string;
   checkCorrect: boolean;
+  onCheckCorrect?: (isCorrect: boolean) => void; // <-- Add this
 };
 
 export default function ProductInput({
@@ -12,6 +13,7 @@ export default function ProductInput({
   label,
   correctAnswer,
   checkCorrect,
+  onCheckCorrect,
 }: ProductInputProps) {
   const [value, setValue] = useState<string[]>(Array(length).fill(""));
   const [isCorrect, setIsCorrect] = useState<boolean[] | null>(null);
@@ -38,8 +40,12 @@ export default function ProductInput({
         (input, idx) => input === correctAnswer[idx]
       );
       setIsCorrect(newIsCorrect);
+
+      if (onCheckCorrect) {
+        onCheckCorrect(newIsCorrect.every(Boolean));
+      }
     }
-  }, [checkCorrect, value, correctAnswer]);
+  }, [checkCorrect]);
 
   return (
     <div className="flex justify-end space-x-2">
