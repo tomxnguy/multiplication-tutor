@@ -5,7 +5,7 @@ export type ProductInputProps = {
   label: string;
   correctAnswer: string;
   checkCorrect: boolean;
-  onCheckCorrect?: (isCorrect: boolean) => void; // <-- Add this
+  onCheckCorrect?: (isCorrect: boolean) => void;
 };
 
 export default function ProductInput({
