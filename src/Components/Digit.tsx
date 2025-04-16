@@ -4,5 +4,9 @@ export type DigitProps = {
 };
 
 export default function Digit({ number, className = "" }: DigitProps) {
-  return <div className={` ${className}`}>{number}</div>;
+  return (
+    <span className={` ${className}`} aria-label={`digit-${number}`}>
+      {number}
+    </span>
+  );
 }

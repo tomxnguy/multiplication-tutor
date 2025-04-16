@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export type ProductInputProps = {
   length: number;
@@ -17,6 +17,7 @@ export default function ProductInput({
 }: ProductInputProps) {
   const [value, setValue] = useState<string[]>(Array(length).fill(""));
   const [isCorrect, setIsCorrect] = useState<boolean[] | null>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   function handleInputProduct(
     e: React.ChangeEvent<HTMLInputElement>,
@@ -32,6 +33,15 @@ export default function ProductInput({
     }
 
     setValue(newValue);
+  }
+
+  function handleSnapToRight() {
+    for (let i = value.length - 1; i >= 0; i--) {
+      if (!value[i]) {
+        inputRefs.current[i]?.focus();
+        break;
+      }
+    }
   }
 
   useEffect(() => {
@@ -55,8 +65,12 @@ export default function ProductInput({
           id={`${label}-input-${index}`}
           type="text"
           value={digit}
-          onChange={(e) => handleInputProduct(e, index)}
+          ref={(el) => {
+            inputRefs.current[index] = el;
+          }}
           maxLength={1}
+          onChange={(e) => handleInputProduct(e, index)}
+          onClick={handleSnapToRight}
           onFocus={(e) => e.target.setSelectionRange(1, 1)}
           onMouseUp={(e) => {
             e.preventDefault();

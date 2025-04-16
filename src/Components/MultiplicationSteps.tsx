@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import InputSquare from "./InputSquare";
 import ProductInput from "./ProductInput";
+import InputSquare from "./InputSquare";
 
 export type MultiplicationStepsProps = {
   num1: number;
@@ -13,38 +13,38 @@ export default function MultiplicationSteps({
   num2,
   onAllCorrect,
 }: MultiplicationStepsProps) {
-  const [isFlashingCarry, setIsFlashingCarry] = useState<number | null>(null);
   const [checkCorrect, setCheckCorrect] = useState(false);
-  const [onesCorrect, setOnesCorrect] = useState(false);
-  const [tensCorrect, setTensCorrect] = useState(false);
+  const [partialsCorrect, setPartialsCorrect] = useState<
+    Record<string, boolean>
+  >({});
+
   const [productCorrect, setProductCorrect] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [isFlashingCarry, setIsFlashingCarry] = useState<number | null>(null);
+
+  const num2Digits = num2.toString().split("").map(Number);
+
+  const partialProducts = num2Digits.map((digit, i, arr) => {
+    const position = arr.length - 1 - i;
+    const result = (num1 * digit).toString() + "0".repeat(position);
+    return {
+      label: `partial-${position}`,
+      correctAnswer: result,
+    };
+  });
 
   useEffect(() => {
-    const allCorrect = onesCorrect && tensCorrect && productCorrect;
+    const allPartialCorrect =
+      partialProducts.length > 0 &&
+      partialProducts.every(({ label }) => partialsCorrect[label]);
+
+    const allCorrect = allPartialCorrect && productCorrect;
     setIsCorrect(allCorrect);
 
     if (allCorrect) {
       onAllCorrect();
     }
-  }, [onesCorrect, tensCorrect, productCorrect, onAllCorrect]);
-
-  function handleInputClick(index: number, row: "carry") {
-    if (row === "carry") {
-      setIsFlashingCarry(index);
-      setTimeout(() => setIsFlashingCarry(null), 500);
-    }
-  }
-
-  const num1Digits = num1.toString().split("");
-  const onesDigit = num2 % 10;
-  const onesResult = num1 * onesDigit;
-  const onesResultsDigits = onesResult.toString().split("");
-
-  const tensDigit = Math.floor(num2 / 10);
-  const tensResult = num1 * tensDigit;
-  const tensResultsDigits = tensResult.toString().split("");
-  tensResultsDigits.push("0");
+  }, [partialsCorrect, productCorrect, partialProducts, onAllCorrect]);
 
   const product = num1 * num2;
   const productDigits = product.toString().split("");
@@ -54,18 +54,25 @@ export default function MultiplicationSteps({
     setTimeout(() => setCheckCorrect(true), 0);
   }
 
-  function handleCorrectState(label: string, isCorrect: boolean) {
-    if (label === "ones") setOnesCorrect(isCorrect);
-    if (label === "tens") setTensCorrect(isCorrect);
-    if (label === "product") setProductCorrect(isCorrect);
-
-    const allCorrect = onesCorrect && tensCorrect && productCorrect;
-    setIsCorrect(allCorrect);
-
-    if (isCorrect && onesCorrect && tensCorrect && productCorrect) {
-      onAllCorrect();
+  function handleCorrectState(label: string, correct: boolean) {
+    if (label === "product") {
+      setProductCorrect(correct);
+    } else {
+      setPartialsCorrect((prev) => ({
+        ...prev,
+        [label]: correct,
+      }));
     }
   }
+
+  function handleInputClick(index: number, row: "carry") {
+    if (row === "carry") {
+      setIsFlashingCarry(index);
+      setTimeout(() => setIsFlashingCarry(null), 500);
+    }
+  }
+
+  const num1Digits = num1.toString().split("");
 
   return (
     <div className="flex flex-col items-center">
@@ -80,7 +87,6 @@ export default function MultiplicationSteps({
               />
             ))}
           </div>
-
           <div>{num1}</div>
           <div className="flex border-b-8 justify-between">
             <div className="pr-12">&times;</div>
@@ -88,32 +94,24 @@ export default function MultiplicationSteps({
           </div>
         </div>
 
-        {/* Ones Multiplication */}
-        <div className="flex justify-end space-x-2 mt-4">
-          <ProductInput
-            length={onesResultsDigits.length}
-            label="ones"
-            correctAnswer={onesResultsDigits.join("")}
-            checkCorrect={checkCorrect}
-            onCheckCorrect={(isCorrect) =>
-              handleCorrectState("ones", isCorrect)
-            }
-          />
-        </div>
-
-        {/* Tens Multiplication */}
-        <div className="flex space-x-2 border-b-8 pb-4 justify-end mt-4">
-          <ProductInput
-            length={tensResultsDigits.length}
-            label="tens"
-            correctAnswer={tensResultsDigits.join("")}
-            checkCorrect={checkCorrect}
-            onCheckCorrect={(isCorrect) =>
-              handleCorrectState("tens", isCorrect)
-            }
-          />
-        </div>
-
+        {partialProducts.reverse().map(({ label, correctAnswer }, i) => (
+          <div
+            key={label}
+            className={`flex space-x-2 justify-end mt-4 ${
+              i === partialProducts.length - 1 ? "border-b-8 pb-4" : ""
+            }`}
+          >
+            <ProductInput
+              length={correctAnswer.length}
+              label={label}
+              correctAnswer={correctAnswer}
+              checkCorrect={checkCorrect}
+              onCheckCorrect={(isCorrect) =>
+                handleCorrectState(label, isCorrect)
+              }
+            />
+          </div>
+        ))}
         {/* Product */}
         <div className="flex justify-end space-x-2 mt-4">
           <ProductInput
