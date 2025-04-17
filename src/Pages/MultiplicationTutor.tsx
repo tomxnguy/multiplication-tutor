@@ -2,7 +2,7 @@ import { useState } from "react";
 import MultiplicationSteps from "../Components/MultiplicationSteps";
 
 export default function MultiplicationTutor() {
-  const [num1, setNum1] = useState<string>(""); // or "" to start blank
+  const [num1, setNum1] = useState<string>("");
   const [num2, setNum2] = useState<string>("");
   const [showNext, setShowNext] = useState(false);
 
