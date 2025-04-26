@@ -5,13 +5,22 @@ export type InputSquareProps = {
   isFlashing: boolean;
   className?: string;
   value?: string;
+  onValueChange?: (value: string) => void;
 };
 
-export default function InputSquare({ onClick, isFlashing }: InputSquareProps) {
+export default function InputSquare({
+  onClick,
+  isFlashing,
+  onValueChange,
+}: InputSquareProps) {
   function handleOneNumber(event: React.ChangeEvent<HTMLInputElement>) {
     const oneNumber = event.target.value;
     if (oneNumber.length > 1) {
       event.target.value = oneNumber.slice(0, 1);
+    }
+
+    if (onValueChange) {
+      onValueChange(event.target.value);
     }
   }
 

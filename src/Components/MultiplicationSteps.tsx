@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { ProductInputHandle } from "./ProductInput";
 import ProductInput from "./ProductInput";
 import InputSquare from "./InputSquare";
 
@@ -17,10 +18,10 @@ export default function MultiplicationSteps({
   const [partialsCorrect, setPartialsCorrect] = useState<
     Record<string, boolean>
   >({});
-
   const [productCorrect, setProductCorrect] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [isFlashingCarry, setIsFlashingCarry] = useState<number | null>(null);
+  const inputRefs = useRef<Record<string, ProductInputHandle | null>>({});
 
   const num2Digits = num2.toString().split("").map(Number);
 
@@ -68,7 +69,21 @@ export default function MultiplicationSteps({
   function handleInputClick(index: number, row: "carry") {
     if (row === "carry") {
       setIsFlashingCarry(index);
-      setTimeout(() => setIsFlashingCarry(null), 500);
+      setTimeout(() => setIsFlashingCarry(null), 5000);
+    }
+  }
+
+  function focusNextEmptyInput() {
+    for (const label of Object.keys(inputRefs.current)) {
+      const el = inputRefs.current[label];
+      if (el) {
+        // Try focusing an empty input
+        el.focusRightMostEmpty();
+
+        // If an input is focused and empty, success
+        const activeEl = document.activeElement as HTMLInputElement;
+        if (activeEl?.value === "") return;
+      }
     }
   }
 
@@ -78,12 +93,17 @@ export default function MultiplicationSteps({
     <div className="flex flex-col items-center">
       <div className="mt-10 text-8xl font-mono">
         <div className="flex flex-col items-end">
-          <div className="flex space-x-2 mb-2">
-            {num1Digits.map((_, index) => (
+          <div className="flex space-x-2 mb-2 pr-13">
+            {num1Digits.slice(0, -1).map((_, index) => (
               <InputSquare
                 key={index}
                 onClick={() => handleInputClick(index, "carry")}
                 isFlashing={isFlashingCarry === index}
+                onValueChange={(value) => {
+                  if (value.trim() !== "") {
+                    focusNextEmptyInput();
+                  }
+                }}
               />
             ))}
           </div>
@@ -110,6 +130,9 @@ export default function MultiplicationSteps({
                 }`}
               >
                 <ProductInput
+                  ref={(el) => {
+                    inputRefs.current[label] = el;
+                  }}
                   length={correctAnswer.length}
                   label={label}
                   correctAnswer={correctAnswer}
