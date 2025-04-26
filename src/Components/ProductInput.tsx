@@ -13,7 +13,6 @@ export type ProductInputProps = {
   checkCorrect: boolean;
   onCheckCorrect?: (isCorrect: boolean) => void;
   justify?: "start" | "end";
-  onClick?: () => void; // <-- add this
 };
 
 export type ProductInputHandle = {
@@ -66,11 +65,9 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
       }
     }
 
-    // 🔥 EXPOSE METHOD TO PARENT
     useImperativeHandle(ref, () => ({
       focusRightMostEmpty() {
         if (justify === "start") {
-          // left-to-right
           for (let i = 0; i < value.length; i++) {
             if (!value[i]) {
               inputRefs.current[i]?.focus();
@@ -78,7 +75,6 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
             }
           }
         } else {
-          // right-to-left
           for (let i = value.length - 1; i >= 0; i--) {
             if (!value[i]) {
               inputRefs.current[i]?.focus();

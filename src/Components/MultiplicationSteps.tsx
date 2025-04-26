@@ -77,10 +77,7 @@ export default function MultiplicationSteps({
     for (const label of Object.keys(inputRefs.current)) {
       const el = inputRefs.current[label];
       if (el) {
-        // Try focusing an empty input
         el.focusRightMostEmpty();
-
-        // If an input is focused and empty, success
         const activeEl = document.activeElement as HTMLInputElement;
         if (activeEl?.value === "") return;
       }
