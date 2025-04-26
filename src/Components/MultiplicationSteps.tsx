@@ -138,6 +138,14 @@ export default function MultiplicationSteps({
                     handleCorrectState(label, isCorrect)
                   }
                   justify={alignLeft ? "start" : "end"}
+                  onFinishRow={() => {
+                    const labels = Object.keys(inputRefs.current);
+                    const currentIndex = labels.indexOf(label);
+                    const nextLabel = labels[currentIndex + 1];
+                    if (nextLabel && inputRefs.current[nextLabel]) {
+                      inputRefs.current[nextLabel]?.focusRightMostEmpty();
+                    }
+                  }}
                 />
               </div>
             );

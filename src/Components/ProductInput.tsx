@@ -13,6 +13,7 @@ export type ProductInputProps = {
   checkCorrect: boolean;
   onCheckCorrect?: (isCorrect: boolean) => void;
   justify?: "start" | "end";
+  onFinishRow?: () => void;
 };
 
 export type ProductInputHandle = {
@@ -21,7 +22,15 @@ export type ProductInputHandle = {
 
 const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
   function ProductInput(
-    { length, label, correctAnswer, checkCorrect, onCheckCorrect, justify },
+    {
+      length,
+      label,
+      correctAnswer,
+      checkCorrect,
+      onCheckCorrect,
+      justify,
+      onFinishRow,
+    },
     ref
   ) {
     const [value, setValue] = useState<string[]>(Array(length).fill(""));
@@ -34,16 +43,24 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
       index: number
     ) {
       let input = e.target.value.replace(/\D/g, "");
-      if (input.length > 1) return;
+      if (input.length > 1) {
+        input = input[input.length - 1];
+      }
+
       const newValue = [...value];
       newValue[index] = input;
-
       setValue(newValue);
 
       if (input) {
         const nextIndex = justify === "start" ? index + 1 : index - 1;
-        const nextEl = document.getElementById(`${label}-input-${nextIndex}`);
-        if (nextEl) nextEl.focus();
+        if (nextIndex >= 0 && nextIndex < length) {
+          const nextEl = document.getElementById(`${label}-input-${nextIndex}`);
+          if (nextEl) nextEl.focus();
+        } else {
+          if (onFinishRow) {
+            onFinishRow();
+          }
+        }
       }
     }
 
@@ -82,6 +99,9 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
             }
           }
         }
+      },
+      isFilled() {
+        return value.every((v) => v !== "");
       },
     }));
 
