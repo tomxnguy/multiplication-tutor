@@ -94,24 +94,34 @@ export default function MultiplicationSteps({
           </div>
         </div>
 
-        {partialProducts.reverse().map(({ label, correctAnswer }, i) => (
-          <div
-            key={label}
-            className={`flex space-x-2 justify-end mt-4 ${
-              i === partialProducts.length - 1 ? "border-b-8 pb-4" : ""
-            }`}
-          >
-            <ProductInput
-              length={correctAnswer.length}
-              label={label}
-              correctAnswer={correctAnswer}
-              checkCorrect={checkCorrect}
-              onCheckCorrect={(isCorrect) =>
-                handleCorrectState(label, isCorrect)
-              }
-            />
-          </div>
-        ))}
+        {partialProducts
+          .slice()
+          .reverse()
+          .map(({ label, correctAnswer }, i) => {
+            const digitIndex = partialProducts.length - 1 - i;
+            const digit = num2.toString().split("")[digitIndex];
+            const alignLeft = digit === "1";
+
+            return (
+              <div
+                key={label}
+                className={`flex space-x-2 justify-end mt-4 ${
+                  i === partialProducts.length - 1 ? "border-b-8 pb-4" : ""
+                }`}
+              >
+                <ProductInput
+                  length={correctAnswer.length}
+                  label={label}
+                  correctAnswer={correctAnswer}
+                  checkCorrect={checkCorrect}
+                  onCheckCorrect={(isCorrect) =>
+                    handleCorrectState(label, isCorrect)
+                  }
+                  justify={alignLeft ? "start" : "end"}
+                />
+              </div>
+            );
+          })}
         {/* Product */}
         <div className="flex justify-end space-x-2 mt-4">
           <ProductInput

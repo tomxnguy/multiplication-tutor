@@ -6,6 +6,7 @@ export type ProductInputProps = {
   correctAnswer: string;
   checkCorrect: boolean;
   onCheckCorrect?: (isCorrect: boolean) => void;
+  justify?: "start" | "end";
 };
 
 export default function ProductInput({
@@ -14,6 +15,7 @@ export default function ProductInput({
   correctAnswer,
   checkCorrect,
   onCheckCorrect,
+  justify,
 }: ProductInputProps) {
   const [value, setValue] = useState<string[]>(Array(length).fill(""));
   const [isCorrect, setIsCorrect] = useState<boolean[] | null>(null);
@@ -28,18 +30,31 @@ export default function ProductInput({
     const newValue = [...value];
     newValue[index] = input;
 
-    if (input && index > 0) {
-      document.getElementById(`${label}-input-${index - 1}`)?.focus();
-    }
-
     setValue(newValue);
+
+    if (input) {
+      const nextIndex = justify === "start" ? index + 1 : index - 1;
+      const nextEl = document.getElementById(`${label}-input-${nextIndex}`);
+      if (nextEl) nextEl.focus();
+    }
   }
 
-  function handleSnapToRight() {
-    for (let i = value.length - 1; i >= 0; i--) {
-      if (!value[i]) {
-        inputRefs.current[i]?.focus();
-        break;
+  function handleSnapToPosition() {
+    if (justify === "start") {
+      // Snap to first empty from the left
+      for (let i = 0; i < value.length; i++) {
+        if (!value[i]) {
+          inputRefs.current[i]?.focus();
+          break;
+        }
+      }
+    } else {
+      // Snap to first empty from the right
+      for (let i = value.length - 1; i >= 0; i--) {
+        if (!value[i]) {
+          inputRefs.current[i]?.focus();
+          break;
+        }
       }
     }
   }
@@ -58,7 +73,7 @@ export default function ProductInput({
   }, [checkCorrect]);
 
   return (
-    <div className="flex justify-end space-x-2">
+    <div className={`flex space-x-2 justify-${justify ?? "end"}`}>
       {value.map((digit, index) => (
         <input
           key={index}
@@ -70,7 +85,7 @@ export default function ProductInput({
           }}
           maxLength={1}
           onChange={(e) => handleInputProduct(e, index)}
-          onClick={handleSnapToRight}
+          onClick={handleSnapToPosition}
           onFocus={(e) => e.target.setSelectionRange(1, 1)}
           onMouseUp={(e) => {
             e.preventDefault();
