@@ -22,6 +22,7 @@ export default function MultiplicationSteps({
   const [isCorrect, setIsCorrect] = useState(false);
   const [isFlashingCarry, setIsFlashingCarry] = useState<number | null>(null);
   const inputRefs = useRef<Record<string, ProductInputHandle | null>>({});
+  const productInputRef = useRef<ProductInputHandle | null>(null);
 
   const num2Digits = num2.toString().split("").map(Number);
 
@@ -142,8 +143,12 @@ export default function MultiplicationSteps({
                     const labels = Object.keys(inputRefs.current);
                     const currentIndex = labels.indexOf(label);
                     const nextLabel = labels[currentIndex + 1];
+
                     if (nextLabel && inputRefs.current[nextLabel]) {
                       inputRefs.current[nextLabel]?.focusRightMostEmpty();
+                    } else if (!nextLabel && productInputRef.current) {
+                      // Last partial row completed, focus product row
+                      productInputRef.current.focusRightMostEmpty();
                     }
                   }}
                 />
@@ -153,6 +158,9 @@ export default function MultiplicationSteps({
         {/* Product */}
         <div className="flex justify-end space-x-2 mt-4">
           <ProductInput
+            ref={(el) => {
+              productInputRef.current = el;
+            }}
             length={productDigits.length}
             label="product"
             correctAnswer={productDigits.join("")}
