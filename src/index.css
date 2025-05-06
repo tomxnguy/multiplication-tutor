@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+input::selection {
+  background: transparent;
+  color: inherit;
+}

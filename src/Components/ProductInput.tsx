@@ -131,8 +131,17 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
             }}
             maxLength={1}
             onChange={(e) => handleInputProduct(e, index)}
-            onClick={handleSnapToPosition}
-            onFocus={() => setFocusedIndex(index)}
+            onClick={(e) => {
+              handleSnapToPosition();
+              const target = e.target as HTMLInputElement;
+              target.setSelectionRange(0, target.value.length);
+              setFocusedIndex(index);
+            }}
+            onFocus={(e) => {
+              const target = e.target as HTMLInputElement;
+              target.setSelectionRange(0, target.value.length);
+              setFocusedIndex(index);
+            }}
             onBlur={() => setFocusedIndex(null)}
             onMouseUp={(e) => {
               e.preventDefault();

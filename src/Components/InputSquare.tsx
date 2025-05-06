@@ -24,6 +24,10 @@ export default function InputSquare({
     }
   }
 
+  function handleFocus(event: React.FocusEvent<HTMLInputElement>) {
+    event.target.setSelectionRange(0, event.target.value.length);
+  }
+
   return (
     <input
       type="number"
@@ -35,6 +39,7 @@ export default function InputSquare({
       placeholder=""
       onClick={onClick}
       onChange={handleOneNumber}
+      onFocus={handleFocus} // Select text when focused
       style={{
         appearance: "none",
         userSelect: "none",
