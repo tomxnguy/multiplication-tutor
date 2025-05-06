@@ -39,7 +39,7 @@ export default function InputSquare({
       placeholder=""
       onClick={onClick}
       onChange={handleOneNumber}
-      onFocus={handleFocus} // Select text when focused
+      onFocus={handleFocus}
       style={{
         appearance: "none",
         userSelect: "none",

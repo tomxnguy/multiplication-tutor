@@ -147,7 +147,6 @@ export default function MultiplicationSteps({
                     if (nextLabel && inputRefs.current[nextLabel]) {
                       inputRefs.current[nextLabel]?.focusRightMostEmpty();
                     } else if (!nextLabel && productInputRef.current) {
-                      // Last partial row completed, focus product row
                       productInputRef.current.focusRightMostEmpty();
                     }
                   }}

@@ -37,34 +37,42 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
     const [isCorrect, setIsCorrect] = useState<boolean[] | null>(null);
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const justTyped = useRef(false);
 
     function handleInputProduct(
       e: React.ChangeEvent<HTMLInputElement>,
       index: number
     ) {
-      let input = e.target.value.replace(/\D/g, "");
-      if (input.length > 1) {
-        input = input[input.length - 1];
-      }
-
+      const raw = e.target.value;
+      const input = raw.replace(/\D/g, "").slice(-1);
       const newValue = [...value];
+      const wasEmpty = newValue[index] === "";
       newValue[index] = input;
       setValue(newValue);
 
-      if (input) {
+      justTyped.current = true;
+
+      const shouldSnap =
+        wasEmpty &&
+        input.length === 1 &&
+        document.activeElement === inputRefs.current[index];
+
+      if (shouldSnap) {
         const nextIndex = justify === "start" ? index + 1 : index - 1;
         if (nextIndex >= 0 && nextIndex < length) {
-          const nextEl = document.getElementById(`${label}-input-${nextIndex}`);
-          if (nextEl) nextEl.focus();
-        } else {
-          if (onFinishRow) {
-            onFinishRow();
-          }
+          inputRefs.current[nextIndex]?.focus();
+        } else if (onFinishRow) {
+          onFinishRow();
         }
       }
     }
 
     function handleSnapToPosition() {
+      if (justTyped.current) {
+        justTyped.current = false;
+        return;
+      }
+
       if (justify === "start") {
         for (let i = 0; i < value.length; i++) {
           if (!value[i]) {
