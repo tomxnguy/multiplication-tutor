@@ -36,8 +36,15 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
     const [value, setValue] = useState<string[]>(Array(length).fill(""));
     const [isCorrect, setIsCorrect] = useState<boolean[] | null>(null);
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const justTyped = useRef(false);
+    const hasEnteredRow = useRef(false);
+    const [direction, setDirection] = useState<"ltr" | "rtl">("rtl");
+
+    useEffect(() => {
+      hasEnteredRow.current = false;
+    }, [label]);
 
     function handleInputProduct(
       e: React.ChangeEvent<HTMLInputElement>,
@@ -58,7 +65,7 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
         document.activeElement === inputRefs.current[index];
 
       if (shouldSnap) {
-        const nextIndex = justify === "start" ? index + 1 : index - 1;
+        const nextIndex = direction === "ltr" ? index + 1 : index - 1;
         if (nextIndex >= 0 && nextIndex < length) {
           inputRefs.current[nextIndex]?.focus();
         } else if (onFinishRow) {
@@ -73,7 +80,7 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
         return;
       }
 
-      if (justify === "start") {
+      if (direction === "ltr") {
         for (let i = 0; i < value.length; i++) {
           if (!value[i]) {
             inputRefs.current[i]?.focus();
@@ -126,6 +133,12 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
       }
     }, [checkCorrect]);
 
+    useEffect(() => {
+      if (value.every((v) => v !== "") && onFinishRow) {
+        onFinishRow();
+      }
+    }, [value, onFinishRow]);
+
     return (
       <div className={`flex space-x-2 justify-${justify ?? "end"}`}>
         {value.map((digit, index) => (
@@ -140,14 +153,36 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
             maxLength={1}
             onChange={(e) => handleInputProduct(e, index)}
             onClick={(e) => {
+              if (!hasEnteredRow.current) {
+                const target = e.target as HTMLInputElement;
+                target.setSelectionRange(0, target.value.length);
+                hasEnteredRow.current = true;
+              }
+
+              // Set direction based on click index
+              if (index === 0) {
+                setDirection("ltr");
+              } else if (index === value.length - 1) {
+                setDirection("rtl");
+              }
+
               handleSnapToPosition();
-              const target = e.target as HTMLInputElement;
-              target.setSelectionRange(0, target.value.length);
               setFocusedIndex(index);
             }}
             onFocus={(e) => {
-              const target = e.target as HTMLInputElement;
-              target.setSelectionRange(0, target.value.length);
+              if (!hasEnteredRow.current) {
+                const target = e.target as HTMLInputElement;
+                target.setSelectionRange(0, target.value.length);
+                hasEnteredRow.current = true;
+              }
+
+              // Set direction based on which box is focused
+              if (index === 0) {
+                setDirection("ltr");
+              } else if (index === value.length - 1) {
+                setDirection("rtl");
+              }
+
               setFocusedIndex(index);
             }}
             onBlur={() => setFocusedIndex(null)}
