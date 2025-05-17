@@ -24,6 +24,11 @@ export default function MultiplicationSteps({
   const inputRefs = useRef<Record<string, ProductInputHandle | null>>({});
   const productInputRef = useRef<ProductInputHandle | null>(null);
 
+  const [carryValues, setCarryValues] = useState<string[]>(() =>
+    Array(num1.toString().length - 1).fill("")
+  );
+  const [focusedPartial, setFocusedPartial] = useState<string | null>(null);
+
   const num2Digits = num2.toString().split("").map(Number);
 
   const partialProducts = num2Digits.map((digit, i, arr) => {
@@ -85,20 +90,37 @@ export default function MultiplicationSteps({
     }
   }
 
-  const num1Digits = num1.toString().split("");
+  useEffect(() => {
+    if (focusedPartial && inputRefs.current[focusedPartial]) {
+      inputRefs.current[focusedPartial]?.focusRightMostEmpty();
+    } else if (focusedPartial === "product" && productInputRef.current) {
+      productInputRef.current.focusRightMostEmpty();
+    }
+  }, [focusedPartial]);
+
+  useEffect(() => {
+    if (focusedPartial !== null) {
+      setCarryValues(Array(num1.toString().length - 1).fill(""));
+    }
+  }, [focusedPartial, num1]);
 
   return (
     <div className="flex flex-col items-center">
       <div className="mt-10 text-8xl font-mono">
         <div className="flex flex-col items-end">
           <div className="flex space-x-2 mb-2 pr-13">
-            {num1Digits.slice(0, -1).map((_, index) => (
+            {carryValues.map((value, index) => (
               <InputSquare
                 key={index}
+                value={value}
                 onClick={() => handleInputClick(index, "carry")}
                 isFlashing={isFlashingCarry === index}
-                onValueChange={(value) => {
-                  if (value.trim() !== "") {
+                onValueChange={(val) => {
+                  const next = [...carryValues];
+                  next[index] = val;
+                  setCarryValues(next);
+
+                  if (val.trim() !== "") {
                     focusNextEmptyInput();
                   }
                 }}
@@ -139,15 +161,16 @@ export default function MultiplicationSteps({
                     handleCorrectState(label, isCorrect)
                   }
                   justify={alignLeft ? "start" : "end"}
+                  onFocus={() => setFocusedPartial(label)}
                   onFinishRow={() => {
                     const labels = Object.keys(inputRefs.current);
                     const currentIndex = labels.indexOf(label);
                     const nextLabel = labels[currentIndex + 1];
 
-                    if (nextLabel && inputRefs.current[nextLabel]) {
-                      inputRefs.current[nextLabel]?.focusRightMostEmpty();
-                    } else if (!nextLabel && productInputRef.current) {
-                      productInputRef.current.focusRightMostEmpty();
+                    if (nextLabel) {
+                      setFocusedPartial(nextLabel);
+                    } else {
+                      setFocusedPartial("product");
                     }
                   }}
                 />

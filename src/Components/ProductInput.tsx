@@ -13,6 +13,8 @@ export type ProductInputProps = {
   checkCorrect: boolean;
   onCheckCorrect?: (isCorrect: boolean) => void;
   justify?: "start" | "end";
+  onFocus?: () => void;
+
   onFinishRow?: () => void;
 };
 
@@ -159,7 +161,6 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
                 hasEnteredRow.current = true;
               }
 
-              // Set direction based on click index
               if (index === 0) {
                 setDirection("ltr");
               } else if (index === value.length - 1) {
@@ -176,7 +177,6 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
                 hasEnteredRow.current = true;
               }
 
-              // Set direction based on which box is focused
               if (index === 0) {
                 setDirection("ltr");
               } else if (index === value.length - 1) {

@@ -12,15 +12,15 @@ export default function InputSquare({
   onClick,
   isFlashing,
   onValueChange,
+  value,
 }: InputSquareProps) {
   function handleOneNumber(event: React.ChangeEvent<HTMLInputElement>) {
-    const oneNumber = event.target.value;
-    if (oneNumber.length > 1) {
-      event.target.value = oneNumber.slice(0, 1);
-    }
+    const val = event.target.value;
 
-    if (onValueChange) {
-      onValueChange(event.target.value);
+    if (/^\d?$/.test(val)) {
+      if (onValueChange) {
+        onValueChange(val);
+      }
     }
   }
 
@@ -30,9 +30,8 @@ export default function InputSquare({
 
   return (
     <input
-      type="number"
-      max="9"
-      min="0"
+      type="text"
+      maxLength={1}
       className={`w-14 h-14 text-center border rounded ${
         isFlashing ? "bg-amber-400" : ""
       } text-3xl`}
@@ -40,6 +39,7 @@ export default function InputSquare({
       onClick={onClick}
       onChange={handleOneNumber}
       onFocus={handleFocus}
+      value={value || ""}
       style={{
         appearance: "none",
         userSelect: "none",
