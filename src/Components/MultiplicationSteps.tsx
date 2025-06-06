@@ -6,13 +6,15 @@ import InputSquare from "./InputSquare";
 export type MultiplicationStepsProps = {
   num1: number;
   num2: number;
-  onAllCorrect: () => void;
+  onAllCorrect: (questionIndex: number) => void;
+  questionIndex: number;
 };
 
 export default function MultiplicationSteps({
   num1,
   num2,
   onAllCorrect,
+  questionIndex,
 }: MultiplicationStepsProps) {
   const [checkCorrect, setCheckCorrect] = useState(false);
   const [partialsCorrect, setPartialsCorrect] = useState<
@@ -40,18 +42,24 @@ export default function MultiplicationSteps({
     };
   });
 
+  const prevIsCorrectRef = useRef(false);
+  useEffect(() => {
+    prevIsCorrectRef.current = isCorrect;
+  });
+
   useEffect(() => {
     const allPartialCorrect =
       partialProducts.length > 0 &&
       partialProducts.every(({ label }) => partialsCorrect[label]);
 
-    const allCorrect = allPartialCorrect && productCorrect;
-    setIsCorrect(allCorrect);
+    const currentCalculatedCorrectness = allPartialCorrect && productCorrect;
 
-    if (allCorrect) {
-      onAllCorrect();
+    if (currentCalculatedCorrectness && !prevIsCorrectRef.current) {
+      onAllCorrect(questionIndex);
     }
-  }, [partialsCorrect, productCorrect, partialProducts, onAllCorrect]);
+
+    setIsCorrect(currentCalculatedCorrectness);
+  }, [partialsCorrect, productCorrect, onAllCorrect, questionIndex]);
 
   const product = num1 * num2;
   const productDigits = product.toString().split("");
