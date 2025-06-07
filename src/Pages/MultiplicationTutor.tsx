@@ -32,7 +32,6 @@ export default function MultiplicationTutor() {
       } else if (currentSetIndex < 17) {
         handleSetCompletion();
       } else {
-        console.log("MultiplicationTutor: All sets completed! Resetting all.");
         setCurrentSetIndex(0);
         setCurrentQuestionIndex(0);
         setCorrectAnswersInSet(0);
@@ -44,19 +43,10 @@ export default function MultiplicationTutor() {
 
   const handleSetCompletion = () => {
     if (correctAnswersInSet === 10) {
-      console.log(
-        `MultiplicationTutor: Set ${currentSetIndex} mastered! Moving to next.`
-      );
       setCurrentSetIndex((prev) => Math.min(prev + 1, 17));
     } else if (correctAnswersInSet >= 6 && correctAnswersInSet <= 9) {
-      console.log(
-        `MultiplicationTutor: Set ${currentSetIndex} partially correct (${correctAnswersInSet}/10). Going down or repeating.`
-      );
       setCurrentSetIndex((prev) => Math.max(0, prev - 1));
     } else {
-      console.log(
-        `MultiplicationTutor: Set ${currentSetIndex} needs more practice (${correctAnswersInSet}/10). Going down.`
-      );
       setCurrentSetIndex((prev) => Math.max(0, prev - 1));
     }
 
@@ -142,7 +132,7 @@ export default function MultiplicationTutor() {
                 return (
                   <div
                     key={index}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold
+                    className={`rounded-full flex items-center justify-center text-white text-sm font-bold
                       ${isCorrect ? "bg-green-500" : "bg-red-400"}
                       ${
                         index === currentQuestionIndex
