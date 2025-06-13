@@ -14,12 +14,13 @@ export type ProductInputProps = {
   onCheckCorrect?: (isCorrect: boolean) => void;
   justify?: "start" | "end";
   onFocus?: () => void;
-
   onFinishRow?: () => void;
+  className?: string;
 };
 
 export type ProductInputHandle = {
   focusRightMostEmpty: () => void;
+  isFilled: () => boolean;
 };
 
 const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
@@ -32,6 +33,7 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
       onCheckCorrect,
       justify,
       onFinishRow,
+      className,
     },
     ref
   ) {
@@ -42,11 +44,21 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const justTyped = useRef(false);
     const hasEnteredRow = useRef(false);
-    const [direction, setDirection] = useState<"ltr" | "rtl">("rtl");
+
+    const checkedResults = useRef<boolean[] | null>(null);
+
+    const [direction, setDirection] = useState<"ltr" | "rtl">(
+      justify === "start" ? "ltr" : "rtl"
+    );
 
     useEffect(() => {
       hasEnteredRow.current = false;
-    }, [label]);
+      setValue(Array(length).fill(""));
+      setIsCorrect(null);
+      setFocusedIndex(null);
+      setDirection(justify === "start" ? "ltr" : "rtl");
+      checkedResults.current = null;
+    }, [label, length, justify]);
 
     function handleInputProduct(
       e: React.ChangeEvent<HTMLInputElement>,
@@ -55,48 +67,44 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
       const raw = e.target.value;
       const input = raw.replace(/\D/g, "").slice(-1);
       const newValue = [...value];
-      const wasEmpty = newValue[index] === "";
       newValue[index] = input;
       setValue(newValue);
+
+      if (isCorrect !== null || checkedResults.current !== null) {
+        setIsCorrect(null);
+        checkedResults.current = null;
+      }
 
       justTyped.current = true;
 
       const shouldSnap =
-        wasEmpty &&
         input.length === 1 &&
         document.activeElement === inputRefs.current[index];
 
       if (shouldSnap) {
-        const nextIndex = direction === "ltr" ? index + 1 : index - 1;
-        if (nextIndex >= 0 && nextIndex < length) {
-          inputRefs.current[nextIndex]?.focus();
-        } else if (onFinishRow) {
-          onFinishRow();
+        let nextIndex;
+        if (direction === "ltr") {
+          nextIndex = index + 1;
+        } else {
+          nextIndex = index - 1;
+        }
+
+        if (input !== "") {
+          if (nextIndex >= 0 && nextIndex < length) {
+            inputRefs.current[nextIndex]?.focus();
+          } else if (onFinishRow && newValue.every((v) => v !== "")) {
+            onFinishRow();
+          }
         }
       }
     }
 
-    function handleSnapToPosition() {
+    function handleSnapToPosition(targetIndex: number) {
       if (justTyped.current) {
         justTyped.current = false;
         return;
       }
-
-      if (direction === "ltr") {
-        for (let i = 0; i < value.length; i++) {
-          if (!value[i]) {
-            inputRefs.current[i]?.focus();
-            break;
-          }
-        }
-      } else {
-        for (let i = value.length - 1; i >= 0; i--) {
-          if (!value[i]) {
-            inputRefs.current[i]?.focus();
-            break;
-          }
-        }
-      }
+      inputRefs.current[targetIndex]?.focus();
     }
 
     useImperativeHandle(ref, () => ({
@@ -108,6 +116,7 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
               return;
             }
           }
+          inputRefs.current[length - 1]?.focus();
         } else {
           for (let i = value.length - 1; i >= 0; i--) {
             if (!value[i]) {
@@ -115,7 +124,9 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
               return;
             }
           }
+          inputRefs.current[0]?.focus();
         }
+        setDirection(justify === "start" ? "ltr" : "rtl");
       },
       isFilled() {
         return value.every((v) => v !== "");
@@ -127,22 +138,77 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
         const newIsCorrect = value.map(
           (input, idx) => input === correctAnswer[idx]
         );
+        checkedResults.current = newIsCorrect;
         setIsCorrect(newIsCorrect);
-
         if (onCheckCorrect) {
           onCheckCorrect(newIsCorrect.every(Boolean));
         }
+      } else {
+        if (isCorrect === null) {
+          checkedResults.current = null;
+        }
       }
-    }, [checkCorrect]);
+    }, [checkCorrect, value, correctAnswer, onCheckCorrect]);
 
     useEffect(() => {
-      if (value.every((v) => v !== "") && onFinishRow) {
+      if (
+        value.every((v) => v !== "") &&
+        onFinishRow &&
+        !hasEnteredRow.current
+      ) {
         onFinishRow();
+        hasEnteredRow.current = true;
       }
     }, [value, onFinishRow]);
 
+    const handleKeyDown = (
+      e: React.KeyboardEvent<HTMLInputElement>,
+      index: number
+    ) => {
+      if (e.key === "Backspace" || e.key === "Delete") {
+        e.preventDefault();
+
+        setValue((prev) => {
+          const newValues = [...prev];
+          if (newValues[index] !== "") {
+            newValues[index] = "";
+          } else if (index > 0) {
+            inputRefs.current[index - 1]?.focus();
+            newValues[index - 1] = "";
+          }
+          return newValues;
+        });
+        if (value[index] === "" && index > 0) {
+          inputRefs.current[index - 1]?.focus();
+        }
+
+        if (isCorrect !== null || checkedResults.current !== null) {
+          setIsCorrect(null);
+          checkedResults.current = null;
+        }
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (index > 0) {
+          inputRefs.current[index - 1]?.focus();
+          setDirection("rtl");
+        }
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (index < length - 1) {
+          inputRefs.current[index + 1]?.focus();
+          setDirection("ltr");
+        }
+      } else if (!/^\d$/.test(e.key) && e.key !== "Tab") {
+        e.preventDefault();
+      }
+    };
+
     return (
-      <div className={`flex space-x-2 justify-${justify ?? "end"}`}>
+      <div
+        className={`flex space-x-2 ${
+          justify === "start" ? "justify-start" : "justify-end"
+        } ${className || ""}`}
+      >
         {value.map((digit, index) => (
           <input
             key={index}
@@ -154,49 +220,43 @@ const ProductInput = forwardRef<ProductInputHandle, ProductInputProps>(
             }}
             maxLength={1}
             onChange={(e) => handleInputProduct(e, index)}
+            onKeyDown={(e) => handleKeyDown(e, index)}
             onClick={(e) => {
-              if (!hasEnteredRow.current) {
-                const target = e.target as HTMLInputElement;
-                target.setSelectionRange(0, target.value.length);
-                hasEnteredRow.current = true;
-              }
+              const target = e.target as HTMLInputElement;
+              target.setSelectionRange(0, target.value.length);
 
               if (index === 0) {
                 setDirection("ltr");
               } else if (index === value.length - 1) {
                 setDirection("rtl");
               }
-
-              handleSnapToPosition();
+              handleSnapToPosition(index);
               setFocusedIndex(index);
             }}
             onFocus={(e) => {
-              if (!hasEnteredRow.current) {
-                const target = e.target as HTMLInputElement;
-                target.setSelectionRange(0, target.value.length);
-                hasEnteredRow.current = true;
-              }
+              const target = e.target as HTMLInputElement;
+              target.setSelectionRange(0, target.value.length);
 
               if (index === 0) {
                 setDirection("ltr");
               } else if (index === value.length - 1) {
                 setDirection("rtl");
               }
-
+              handleSnapToPosition(index);
               setFocusedIndex(index);
             }}
             onBlur={() => setFocusedIndex(null)}
-            onMouseUp={(e) => {
-              e.preventDefault();
-              e.currentTarget.setSelectionRange(1, 1);
-            }}
-            className={`border-4 text-4xl text-center w-14 h-14 ${
-              isCorrect === null
-                ? "border-black"
-                : isCorrect[index]
-                ? "border-green-500"
-                : "border-red-500"
-            } ${focusedIndex === index ? "bg-yellow-300" : ""}`}
+            className={`border-4 text-4xl text-center w-14 h-14 transition-all duration-200
+              ${
+                isCorrect === null
+                  ? "border-black"
+                  : isCorrect[index]
+                  ? "border-green-500"
+                  : "border-red-500"
+              }
+              ${focusedIndex === index ? "bg-yellow-300" : ""}
+              ${focusedIndex === index ? "no-caret" : ""}
+            `}
           />
         ))}
       </div>

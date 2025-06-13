@@ -10,3 +10,7 @@ input::selection {
   background: transparent;
   color: inherit;
 }
+
+.no-caret {
+  caret-color: transparent;
+}

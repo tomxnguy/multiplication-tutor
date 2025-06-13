@@ -57,21 +57,34 @@ export default function MultiplicationTutor() {
     setShowNext(false);
   };
 
-  const handleProblemCorrect = useCallback((questionIdx: number) => {
-    setCorrectAnswersInSet((prev) => prev + 1);
-    setQuestionStatuses((prevStatuses) => {
-      const newStatuses = [...prevStatuses];
-      if (questionIdx >= 0 && questionIdx < newStatuses.length) {
-        newStatuses[questionIdx] = true;
-      } else {
-        console.warn(
-          `MultiplicationTutor: Invalid questionIdx received: ${questionIdx}`
-        );
-      }
-      return newStatuses;
-    });
-    setShowNext(true);
-  }, []);
+  const handleProblemCorrect = useCallback(
+    (questionIdx: number) => {
+      setCorrectAnswersInSet((prev) => {
+        if (!questionStatuses[questionIdx]) {
+          return prev + 1;
+        }
+        return prev;
+      });
+
+      setQuestionStatuses((prevStatuses) => {
+        const newStatuses = [...prevStatuses];
+        if (
+          questionIdx >= 0 &&
+          questionIdx < newStatuses.length &&
+          !newStatuses[questionIdx]
+        ) {
+          newStatuses[questionIdx] = true;
+        } else if (questionIdx < 0 || questionIdx >= newStatuses.length) {
+          console.warn(
+            `MultiplicationTutor: Invalid questionIdx received: ${questionIdx}`
+          );
+        }
+        return newStatuses;
+      });
+      setShowNext(true);
+    },
+    [questionStatuses]
+  );
 
   const handleNextProblem = () => {
     setCurrentQuestionIndex((prev) => prev + 1);

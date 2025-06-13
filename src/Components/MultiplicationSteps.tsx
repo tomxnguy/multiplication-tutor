@@ -30,11 +30,10 @@ export default function MultiplicationSteps({
     Array(num1.toString().length - 1).fill("")
   );
   const [focusedPartial, setFocusedPartial] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const num2Digits = num2.toString().split("").map(Number);
-
   const shouldShowPartialProductLines = num2Digits.length > 1;
-
   const isNum1MultiDigit = num1.toString().length > 1;
 
   const partialProducts = num2Digits.map((digit, i, arr) => {
@@ -63,25 +62,40 @@ export default function MultiplicationSteps({
       currentCalculatedCorrectness = productCorrect;
     }
 
-    if (currentCalculatedCorrectness && !prevIsCorrectRef.current) {
-      onAllCorrect(questionIndex);
-    }
-
     setIsCorrect(currentCalculatedCorrectness);
+
+    if (checkCorrect) {
+      setShowFeedback(true);
+
+      if (currentCalculatedCorrectness && !prevIsCorrectRef.current) {
+        onAllCorrect(questionIndex);
+      }
+    }
   }, [
     partialsCorrect,
     productCorrect,
+    shouldShowPartialProductLines,
+    checkCorrect,
+    setShowFeedback,
     onAllCorrect,
     questionIndex,
-    shouldShowPartialProductLines,
+    prevIsCorrectRef,
   ]);
+
+  useEffect(() => {
+    if (checkCorrect) {
+      const timer = setTimeout(() => {
+        setCheckCorrect(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [checkCorrect]);
 
   const product = num1 * num2;
   const productDigits = product.toString().split("");
 
   function handleSubmit() {
-    setCheckCorrect(false);
-    setTimeout(() => setCheckCorrect(true), 0);
+    setCheckCorrect(true);
   }
 
   function handleCorrectState(label: string, correct: boolean) {
@@ -224,18 +238,36 @@ export default function MultiplicationSteps({
           />
         </div>
 
-        {/* Submit & Next Button */}
+        {/* Submit Button  */}
         <div className="flex h-full mb-6 justify-center">
-          {!isCorrect ? (
+          {!isCorrect && !showFeedback ? (
             <button
               onClick={handleSubmit}
-              className="mt-4 px-4 py-1 bg-green-300 text-white text-3xl rounded"
+              className="mt-4 px-4 py-1 font-sans bg-green-500 text-white text-3xl rounded"
             >
               Submit
             </button>
           ) : (
             <div className="flex flex-col items-center mt-6">
-              <p className="text-green-500 text-3xl font-bold">Correct!</p>
+              <p
+                className={`text-3xl font-sans font-bold ${
+                  isCorrect ? "text-green-500" : "text-red-500"
+                }`}
+              >
+                {isCorrect ? "Correct!" : "Try Again!"}
+              </p>
+
+              {!isCorrect && (
+                <button
+                  onClick={() => {
+                    setShowFeedback(false);
+                    setCheckCorrect(false);
+                  }}
+                  className="mt-2 px-4 py-1 font-sans bg-yellow-500 text-white text-2xl rounded"
+                >
+                  Edit
+                </button>
+              )}
             </div>
           )}
         </div>
