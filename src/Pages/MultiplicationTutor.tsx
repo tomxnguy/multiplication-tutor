@@ -99,10 +99,10 @@ export default function MultiplicationTutor() {
       <div className="w-full flex justify-center py-2 bg-indigo-200">
         <h2 className="text-xl">Long Multiplication</h2>
       </div>
-      <div className="flex justify-center gap-10 items-start min-h-[calc(100vh-64px)] p-4">
-        {/* Left side: This will now center its own content vertically */}
+      <div className="flex flex-col md:flex-row justify-center gap-2 md:gap-10 lg:gap-20 items-center min-h-[calc(100vh-64px)] p-4">
+        {/* Left side */}
         <div className="flex flex-col items-center">
-          <div className="flex items-center gap-4 mt-10">
+          <div className="flex items-center gap-4 ">
             <input
               type="number"
               value={num1}
@@ -122,24 +122,24 @@ export default function MultiplicationTutor() {
             Level {currentSetIndex + 1} | Question: {currentQuestionIndex + 1} /
             10
           </div>
-          {/*  Progress Box */}
+          {/* Progress Box */}
           <div className="border border-gray-300 p-4 rounded-lg shadow-md bg-white">
             <h3 className="text-lg font-semibold mb-4 text-center">
               Current Level Progress
             </h3>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-5 md:grid-cols-2 lg:grid-cols-1 gap-2">
               {questionStatuses.map((isCorrect, index) => {
                 return (
                   <div
                     key={index}
                     className={`rounded-full flex items-center justify-center text-white text-sm font-bold
-                      ${isCorrect ? "bg-green-500" : "bg-red-400"}
-                      ${
-                        index === currentQuestionIndex
-                          ? "border-2 border-blue-500 scale-110"
-                          : ""
-                      }
-                    `}
+                  ${isCorrect ? "bg-green-500" : "bg-red-400"}
+                  ${
+                    index === currentQuestionIndex
+                      ? "border-2 border-blue-500 scale-110"
+                      : ""
+                  }
+                `}
                   >
                     {index + 1}
                   </div>
@@ -149,7 +149,7 @@ export default function MultiplicationTutor() {
           </div>
         </div>
 
-        {/* Right side: Multiplication Steps and Next Button */}
+        {/* Right side */}
         <div className="flex flex-col items-center">
           {!isNaN(Number(num1)) && !isNaN(Number(num2)) && (
             <MultiplicationSteps
